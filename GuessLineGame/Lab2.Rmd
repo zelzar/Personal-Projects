@@ -1,0 +1,177 @@
+---
+title: "Lab2"
+author: "Shreyash Singh"
+date: "2024-01-29"
+output: pdf_document
+---
+# Importing the Data and the library
+
+```{r}
+library(dplyr)
+library(tidyverse)
+library(ggplot2)
+library(ggplot2movies)
+data(movies)
+```
+
+# Soln 1. Range of years of production of the movies of this data set
+```{r}
+range <- range(movies$year)
+cat(" Range of years of production\n","The oldest movie was produced in:", 
+    range[1],"\n","The most recent movie was produced in:", range[2],"\n", 
+    "Time gap between the two:", range[2]-range[1], "years.")
+```
+
+# Soln 2. Budget Information for the movies of data set
+```{r}
+hasBudget <- sum(!is.na(movies$budget)) / nrow(movies)
+top5 <- head(movies[order(movies$budget, decreasing = TRUE),c("title", "budget")], 5)
+for (i in 1:nrow(top5)) {
+  if (i==1) {
+    cat(" Proportion of movies with budget included:", hasBudget, "\n",
+        "Proportion of movies without budget information:", 1 - hasBudget,"\n",
+        "Top 5 most expensive movies:\n",
+        sprintf("%-40s %-15s\n","Title", "Budget"))
+  }
+  cat(sprintf("%-40s %-15s\n", top5[i, "title"], top5[i, "budget"]))
+}
+```
+
+# Soln 3. Top 5 Longest Movies
+```{r}
+top5 <- head(movies[order(movies$length, decreasing = TRUE), c("title", "length")], 5)
+for (i in 1:nrow(top5)) {
+  if(i ==1){
+    cat("Top 5 longest movies:\n",sprintf("%-50s %-10s\n", "Title", "Length(minutes)"))
+  }
+  cat(sprintf("%-50s %-10s\n", top5[i, "title"], top5[i, "length"]))
+}
+```
+
+# Soln 4. The Shortest and Longest Movies 
+```{r}
+shortMovies <- movies[movies$Short == 1, ]
+shortest <- head(shortMovies[order(shortMovies$length, decreasing = FALSE), ], 1)
+longest <- head(shortMovies[order(shortMovies$length, decreasing = TRUE), ], 1)
+cat(" Shortest short movie:", shortest$title, "(", shortest$length, "minutes )\n",
+  "Longest short movie:", longest$title, "(", longest$length, "minutes )\n")
+```
+
+\newpage
+# Soln 5. The Shortest and Longest Movies 
+```{r}
+genres <- c("Action", "Animation", "Comedy", "Drama", "Documentary", "Romance", "Short")
+nums <- apply(movies[genres], 2, sum)
+df = data.frame(genres = names(nums), count = nums)
+ggplot(df, aes(y = count, x = genres)) +
+geom_bar(stat = "identity", fill="salmon") +
+labs(title = "Number of Movies in each Genre", x = "Genre", y = "Number(Movies)")
+```
+
+\newpage
+# Soln 6. The average rating of all movies within each genre
+```{r}
+avgRating <- data.frame(genre = character(), rating = numeric())
+
+for (genre in genres) {
+  # Calculate average rating for each genre
+  rating <- mean(movies$rating[movies[, genre] == 1], na.rm = TRUE)
+  avgRating  <- rbind(avgRating, data.frame(genre = genre, rating = rating))
+}
+ggplot(avgRating, aes(x = genres, y = rating)) +
+geom_bar(stat = "identity", fill = "green") +
+labs(title = "Average Rating by Genre", x = "Genre", y = "Average Rating")
+
+```
+
+\newpage
+# Soln 7. The average rating of all movies within each genre that were produced in the years 2000-2005? 
+```{r}
+# Create average rating for each genre as subset 
+avgRating_2000_2005 <- data.frame(genre = character(), rating = numeric())
+
+for (genre in genres) {
+  rating <- mean(movies$rating[movies[, genre] == 1 & movies$year >= 2000 & movies$year <= 2005], na.rm = TRUE)
+  avgRating_2000_2005 <- rbind(avgRating_2000_2005, data.frame(genre = genre, rating = rating))
+}
+
+ggplot(avgRating_2000_2005, aes(x = genre, y = rating)) +
+  geom_bar(stat = "identity", fill = "darkorange") +
+  labs(title = "Average Rating of Movies by Genre (2000-2005)", x = "Genre", y = "Average Rating")
+
+```
+
+\newpage
+# Soln 8. The average rating of all movies within each genre that were produced in the years 2000-2005? 
+```{r}
+movies_1990 <- movies[movies$year <= max(movies$year) & movies$year >= 1990 & movies$Short == 0,]
+movies_1990 <- movies_1990 %>% pivot_longer(cols = c(Action, Animation, Comedy, 
+                                                     Drama, Documentary, Romance),
+                                      names_to = "genres",
+                                      values_to = "present")
+numMovies <- movies_1990 %>%
+  filter(present == 1) %>%
+  group_by(genres, year) %>%
+  summarise(nums = n())
+
+ggplot(numMovies, aes(x = year, y = nums, group = genres, color = genres)) +
+  geom_line(linewidth = 0.5) + 
+  labs(title = "Average Rating of non Short Movies by Genre (1990-2005)", 
+       x = "Genre", y = "Average Rating") +
+  geom_point()
+
+```
+
+\newpage
+# Soln 9. 3 questions of my choice related to the dataset
+```{r}
+#Question 1: Is there any correlation between the user votes and movie rating?
+
+#Soln 9.1: Using a scatterplot 
+ggplot(movies, aes(x = votes, y = rating)) +
+  geom_point(color = "deepskyblue") +
+  labs(title = "Correlation Between Votes and Movie Ratings",
+       x = "Number of Votes", y = "Rating") 
+#Answer: Looking at the plot we can see the votes tend to increase as the rating increases
+
+```
+
+\newpage
+```{r}
+#Question 2: How many movies have a rating of 9.5 in different genre?
+
+#Soln 9.2:
+
+high_rating_movies <- subset(movies, rating >= 9.5)
+
+genre_distribution <- colSums(high_rating_movies[, 
+          c("Action", "Animation", "Comedy", "Drama", "Documentary", "Romance", "Short")])
+
+cat("Genre distribution of movies with rating of 9.5 or above:\n")
+print(genre_distribution)
+
+```
+\newpage
+
+```{r}
+#Question 3: What is the distribution of movie budgets across different MPAA rating?
+
+#Soln 9.3: Using a tableview 
+
+withBudget <- movies[!is.na(movies$budget), ]
+tot_bud <- withBudget %>%
+  group_by(mpaa) %>%
+  summarise(total_budget = sum(budget))
+
+tot_bud$percent <- sprintf("%.2f%%", (tot_bud$total_budget / sum(tot_bud$total_budget)) * 100)
+print(tot_bud)
+
+#Visual Representation:
+ggplot(tot_bud, aes(x = "", y = total_budget, fill = mpaa, label = percent)) +
+  geom_bar(stat = "identity", width = 1, color = "white") +
+  coord_polar("y") +
+  labs(title = "Distribution of Movie Budgets Across MPAA Ratings",
+       fill = "MPAA Rating")
+# the "" here in "salmon" color is the set of unrated movies
+```
+
