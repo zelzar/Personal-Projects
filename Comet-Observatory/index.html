@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Near Earth Comets Visualization</title>
+    <link rel="stylesheet" href="style.css">
+    <!-- Load D3.js -->
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <!-- Load Tone.js for sound synthesis -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <h1>Near Earth Comets: An Orbital Symphony</h1>
+        
+        <!-- Control panel -->
+        <div id="controls">
+            <button id="playButton">Play</button>
+            <input id="timeSlider" type="range" min="0" max="100" value="0">
+            <span id="yearDisplay">Year: 2023</span>
+            <button id="soundToggle" class="feature-button">🔊 Sound Off</button>
+        </div>
+        
+        <!-- Main visualization area -->
+        <div id="vis"></div>
+        
+        <!-- Information panels -->
+        <div id="timelinePanel" class="feature-panel">
+            <button class="close-button">&times;</button>
+            <h3>Comet Timeline</h3>
+            <div id="timelineContent"></div>
+        </div>
+        
+        <div id="mythologyPanel" class="feature-panel">
+            <button class="close-button">&times;</button>
+            <h3>Astronomical & Cultural Significance</h3>
+            <div id="mythologyContent"></div>
+        </div>
+        
+        <div class="description">
+            <p></p>
+        </div>
+    </div>
+    
+    <!-- Load the main visualization script -->
+    <script src="ssing375.js"></script>
+</body>
+</html>
